@@ -4,7 +4,7 @@ $(function(){
         var data = {};
         data.email = $('#login').val().trim();
         data.pass = $('#pass').val().trim();
-
+        
         if (data.email && data.pass){
             $.ajax({
                 type: "post",
@@ -39,13 +39,12 @@ $(function(){
     $('#btn_exit').click(function(){
         var data = {};
         data.logout = "yes";
-
+        
         $.ajax({
             type: "post",
             data: data,
             url: "auth.php",
             success: function (html) {
-                alert(html);
                 return false;
             }
         });

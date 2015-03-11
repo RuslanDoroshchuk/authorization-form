@@ -28,7 +28,7 @@
 	</div>
 	
 	<div id='loginedForm'>
-            <div id='msg'><?php echo ($_SESSION['user_id']) ? "Hello! Your id: ".$_SESSION['user_id'].", last visit: ".$_SESSION['last_visit'] : ""; ?></div>
+            <div id='msg'><?=$auth->writeHello()?></div>
             <button id='btn_exit'>LogOut</button>
 	</div>
 	
