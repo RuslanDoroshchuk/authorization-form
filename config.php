@@ -11,3 +11,8 @@ define("DB_NAME", "test");
  * authorization settings
  */
 define("AUTH_ATTEMPTS", 2);
+
+/**
+ * Directory separator for class loader
+ */
+define("DIRECTORY_SEPARATOR", '/');

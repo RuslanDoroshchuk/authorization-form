@@ -1,4 +1,6 @@
 <?php
+namespace testAuthForm\classes;
+
 class Database 
 {
     private $_db;
@@ -6,8 +8,8 @@ class Database
 
     private function __construct()
     {
-        $this->_db = new PDO('mysql:host='.DB_SERVER.';dbname='.DB_NAME, DB_USERNAME, DB_PASSWORD);
-        $this->_db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $this->_db = new \PDO('mysql:host='.DB_SERVER.';dbname='.DB_NAME, DB_USERNAME, DB_PASSWORD);
+        $this->_db->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
     }
 
     private function __clone(){}

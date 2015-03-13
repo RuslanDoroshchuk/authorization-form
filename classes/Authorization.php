@@ -1,4 +1,5 @@
 <?php
+namespace testAuthForm\classes;
 
 class Authorization
 {
@@ -55,7 +56,7 @@ class Authorization
 	
 	// if login and pass correct
 	if ($q->rowCount()){
-            $user = $q->fetch(PDO::FETCH_ASSOC);
+            $user = $q->fetch(\PDO::FETCH_ASSOC);
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['last_visit'] = date('d/m/Y H:i', strtotime($user['last_visit']));
             $_SESSION['wrong_pass'] = 0;

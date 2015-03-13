@@ -1,13 +1,10 @@
 <?php
+namespace testAuthForm;
+
 session_start();
 
-require_once 'config.php';
+require_once 'Autoloader.php';
 
-function __autoload($classname) {
-    $filename = "classes/". $classname .".php";
-    include_once($filename);
-}
-
-$auth = new Authorization();
+$auth = new \testAuthForm\classes\Authorization();
 
 require_once 'templates/index.php';
