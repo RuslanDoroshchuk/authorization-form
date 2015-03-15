@@ -1,0 +1,68 @@
+#logoutForm, #authform, #captcha
+{
+    display:none;
+}
+
+.auth_error
+{
+    border: 1px solid red!important;
+}
+
+.auth_form
+{
+    padding:14px;
+    border: 1px solid #eee; 
+    background: #eee;
+    -webkit-border-radius: 7px; 
+    -moz-border-radius: 7px; 
+    border-radius: 7px; 
+    width:300px;
+    font-family:Helvetica, Arail, sans-serif;
+    margin:20px auto;
+}
+
+.auth_form label
+{
+    width:80px;
+    padding:3px;
+    padding-right:10px;
+    margin:5px 0 0 0;
+    display:inline-block;
+}
+
+.auth_form input, #btn_exit
+{
+    padding:3px;
+    width:160px;
+    display:inline-block;
+    margin:5px 0 0 0;
+    border:1px solid #777;
+    -webkit-border-radius: 5px; 
+    -moz-border-radius: 5px; 
+    border-radius: 5px; 
+    outline:none; 
+}
+
+#img_captcha
+{
+    width:120px;
+    margin:10px 5px 5px 95px;
+    border:1px solid #999;
+    -webkit-border-radius: 5px; 
+    -moz-border-radius: 5px; 
+    border-radius: 5px;       
+}
+
+#btn_login, #btn_exit
+{
+    width:120px;
+    margin:10px 5px 5px 95px;
+    border:1px solid #999;
+    cursor:pointer;
+}
+
+#btn_login:hover, #btn_exit:hover
+{
+    background:#999;
+    outline:none;
+}

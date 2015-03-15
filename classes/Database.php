@@ -26,5 +26,5 @@ class Database
     {
         return $this->_db->query($sql);
     }
-
+    
 }

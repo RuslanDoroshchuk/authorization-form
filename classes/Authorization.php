@@ -19,9 +19,10 @@ class Authorization
                       LIMIT 1;";
                 
         $q = $db->query($statement);
-        
+                
         // if table not exist - create table and add user
         if (!($q->rowCount())){
+            echo 'Creating table<br/>';
             // 1. Create table
             $db->query("CREATE TABLE users (
                             id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -47,38 +48,61 @@ class Authorization
     }
 
     // check login and password
-    public static function checkUser($login, $pass)
+    public static function checkUser($login, $pass, $code)
     {
-        $db = Database::getInstance();
+        $rez = array();  // rezult
         
-        $q = $db->query("SELECT id, last_visit FROM users "
-                . "WHERE email = '$login' AND password = md5('$pass')");
+        if (($_SESSION['wrong_pass'] >= AUTH_ATTEMPTS) && ($code != $_SESSION["simple-php-captcha"]['code'])){
+        
+            $rez['answer'] = 'NO';
+            $rez['msg'] = 'Captcha is not correct';
+        
+        } else {
+            
+            $db = Database::getInstance();
+            $q = $db->query("SELECT id, last_visit FROM users "
+                    . "WHERE email = '$login' AND password = md5('$pass')");
 	
-	// if login and pass correct
-	if ($q->rowCount()){
-            $user = $q->fetch(\PDO::FETCH_ASSOC);
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['last_visit'] = date('d/m/Y H:i', strtotime($user['last_visit']));
-            $_SESSION['wrong_pass'] = 0;
-            // update last login
-            $q2 = $db->query('UPDATE users SET last_visit = "'.date('Y-d-m H:i:s').'"');
-            if ($user['last_visit']=='0000-00-00 00:00:00'){
-                $lastVisitMsg = "This is your first visit";    
-            } else {
-                $lastVisitMsg = "last visit: ".date('d/m/Y H:i', strtotime($user['last_visit']));
-            }
-            echo "Hello! Your id: ".$user['id'].", ".$lastVisitMsg;
-	} else {
-            if (isset($_SESSION['wrong_pass']) && ($_SESSION['wrong_pass']>0)){
-                $_SESSION['wrong_pass']++;
-                if ($_SESSION['wrong_pass']>=AUTH_ATTEMPTS){
-                    echo "CAPTCHA";
+            // if login and pass correct
+            if ($q->rowCount()){
+                
+                $user = $q->fetch(\PDO::FETCH_ASSOC);
+                // update last login
+                $q2 = $db->query('UPDATE users SET last_visit = "'.date('Y-m-d H:i:s').'" WHERE id = '.$user['id']);
+                
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['last_visit'] = date('d/m/Y H:i', strtotime($user['last_visit']));
+                $_SESSION['wrong_pass'] = 0;
+                if ($user['last_visit']=='0000-00-00 00:00:00'){
+                    $lastVisitMsg = "This is your first visit";    
+                } else {
+                    $lastVisitMsg = "last visit: ".date('d/m/Y H:i', strtotime($user['last_visit']));
                 }
-            } else {
-                $_SESSION['wrong_pass'] = 1;
+                $rez['answer'] = 'OK';
+                $rez['msg'] = "Hello! Your id: ".$user['id'].", ".$lastVisitMsg;
+
+            } else {    // login/password not correct
+                
+                if (isset($_SESSION['wrong_pass']) && ($_SESSION['wrong_pass']>0)){
+                    $_SESSION['wrong_pass']++;
+                    if ($_SESSION['wrong_pass'] >= AUTH_ATTEMPTS){
+                        // show captcha
+                        $rez['captcha'] = 1;               
+                    } else {
+                        $rez['captcha'] = 0;               
+                    }
+                } else {
+                    $_SESSION['wrong_pass'] = 1;
+                }
+                
+                $rez['answer'] = 'NO';
+                $rez['msg'] = 'INCORRECT LOGIN or PASSWORD';
+                            
             }
-            echo "INCORRECT LOGIN or PASSWORD";
-	}
+        }
+        
+        // echo results
+        echo json_encode($rez);
     }
     
     
@@ -86,5 +110,26 @@ class Authorization
     public static function logout()
     {
         $_SESSION['user_id'] = 0;
+    }
+    
+    // get logined status at start
+    public static function getAuthInfo()
+    {
+        $authData = array();
+        $authData['userId'] = $_SESSION['user_id'] ? $_SESSION['user_id'] : 0;
+        $authData['captcha'] = ($_SESSION['wrong_pass']>=AUTH_ATTEMPTS) ? 1 : 0;
+        if ($authData['captcha']) {
+            require_once("/libs/simple-php-captcha/simple-php-captcha.php");
+            $_SESSION['simple-php-captcha'] = simple_php_captcha();
+            $authData['captha_img'] = $_SESSION['simple-php-captcha']['image_src'];
+        }
+        // message for user
+        $msg = "Please, enter to site";
+        if ($_SESSION['user_id']) {
+            $msg = "Hello! Your id: ".$_SESSION['user_id'].", last visit: ".$_SESSION['last_visit'];
+        }
+        $authData['msg'] = $msg;
+        
+        echo json_encode($authData);
     }
 }
