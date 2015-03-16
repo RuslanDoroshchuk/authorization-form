@@ -5,6 +5,6 @@ session_start();
 
 require_once 'Autoloader.php';
 
-$auth = new \testAuthForm\classes\Authorization();
+$auth = new classes\Authorization();
 
 require_once 'templates/index.php';

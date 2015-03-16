@@ -19,7 +19,8 @@ class Authorization
                       LIMIT 1;";
                 
         $q = $db->query($statement);
-                
+          
+        
         // if table not exist - create table and add user
         if (!($q->rowCount())){
             echo 'Creating table<br/>';
@@ -34,19 +35,9 @@ class Authorization
             $db->query("INSERT INTO users (email, password, last_visit) "
                         . "VALUES ('mail@mail.ua', md5('1111'), "
                         . "'0000-00-00 00:00:00')");
-        }       
+        }        
     }
     
-    // message for  user
-    public function writeHello()
-    {
-        $msg = "Please, enter to site";
-        if (isset($_SESSION['user_id'])) {
-            $msg = "Hello! Your id: ".$_SESSION['user_id'].", last visit: ".$_SESSION['last_visit'];
-        }
-        return $msg;
-    }
-
     // check login and password
     public static function checkUser($login, $pass, $code)
     {
@@ -60,15 +51,14 @@ class Authorization
         } else {
             
             $db = Database::getInstance();
-            $q = $db->query("SELECT id, last_visit FROM users "
-                    . "WHERE email = '$login' AND password = md5('$pass')");
-	
+            $db->qUserCheck->execute(array('email' => $login, 'password' => md5($pass)));
+            
             // if login and pass correct
-            if ($q->rowCount()){
+            if ($db->qUserCheck->rowCount()){
                 
-                $user = $q->fetch(\PDO::FETCH_ASSOC);
+                $user = $db->qUserCheck->fetch(\PDO::FETCH_ASSOC);
                 // update last login
-                $q2 = $db->query('UPDATE users SET last_visit = "'.date('Y-m-d H:i:s').'" WHERE id = '.$user['id']);
+                $db->qUpdLastVisit->execute(array('user_id' => $user['id']));
                 
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['last_visit'] = date('d/m/Y H:i', strtotime($user['last_visit']));
