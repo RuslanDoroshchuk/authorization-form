@@ -11,12 +11,14 @@ $code   = filter_input(INPUT_POST, 'code');
 $logout = filter_input(INPUT_POST, 'logout');
 $info   = filter_input(INPUT_POST, 'info');
 
+$user = new Authorization();
+
 if ($email && $pass){
-    classes\Authorization::checkUser($email, $pass, $code);
+    $user->checkUser($email, $pass, $code);
 } elseif ($logout) {
-    classes\Authorization::logout();
+    $user->logout();
 } elseif ($info) {
-    classes\Authorization::getAuthInfo();
+    $user->getAuthInfo();
 } else {
     echo "Empty email or password";
 }

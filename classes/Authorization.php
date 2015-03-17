@@ -1,11 +1,46 @@
 <?php
-namespace testAuthForm\classes;
+namespace testAuthForm;
 
 class Authorization
 {
+    private $qUserCheck;      // prepered query for checking user login/password
+    private $qUpdLastVisit;   // prepered query for updating user last visit
+    
     public function __construct()
     {
         $this->createUserTable();
+        $this->qUserCheck = $this->queryUserCheck();
+        $this->qUpdLastVisit = $this->queryUpdLastVisit();
+    }
+    
+    // prepare select for checkind user login/password
+    private function queryUserCheck()
+    {
+        $db = Database::getInstance();
+        return $db->prepare("SELECT id, last_visit FROM users "
+                    . "WHERE email = :email AND password = :password");
+    }
+    
+    // prepare query for updating user last visit
+    private function queryUpdLastVisit()
+    {
+        $db = Database::getInstance();
+        return $db->prepare('UPDATE users SET last_visit = NOW()'
+                    .' WHERE id = :user_id');
+    }
+    
+    // get user password by email
+    private function getUser($email)
+    {
+        $db = Database::getInstance();
+        $q = $db->prepare("SELECT id, password, last_visit FROM users "
+                    . "WHERE email = ?");
+        $q->execute(array($email));
+        if ($q->rowCount()){
+            return $q->fetch(\PDO::FETCH_ASSOC);
+        } else {
+            return false;
+        }
     }
     
     // create user table if not exist
@@ -23,7 +58,6 @@ class Authorization
         
         // if table not exist - create table and add user
         if (!($q->rowCount())){
-            echo 'Creating table<br/>';
             // 1. Create table
             $db->query("CREATE TABLE users (
                             id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -32,14 +66,18 @@ class Authorization
                             last_visit TIMESTAMP
                             )");
             // 2. Add test user
+            $pass = '1111';
+            $randString = substr(str_shuffle(str_repeat('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',5)),0,32);
+            $passwordsr = md5($pass.$randString);
+            $password = $passwordsr.":".$randString;
             $db->query("INSERT INTO users (email, password, last_visit) "
-                        . "VALUES ('mail@mail.ua', md5('1111'), "
+                        . "VALUES ('mail@mail.ua', '$password', "
                         . "'0000-00-00 00:00:00')");
         }        
     }
     
     // check login and password
-    public static function checkUser($login, $pass, $code)
+    public function checkUser($login, $pass, $code)
     {
         $rez = array();  // rezult
         
@@ -50,15 +88,20 @@ class Authorization
         
         } else {
             
-            $db = Database::getInstance();
-            $db->qUserCheck->execute(array('email' => $login, 'password' => md5($pass)));
+            $user = $this->getUser($login);
+            
+            if ($user){
+                $randStr = substr($user['password'], -32);
+                $passClear =md5($pass.$randStr);
+                $password = $passClear.":".$randStr;
+                $passOK = ($password == $user['password']) ? true : false;
+            }
             
             // if login and pass correct
-            if ($db->qUserCheck->rowCount()){
+            if ($user && $passOK){
                 
-                $user = $db->qUserCheck->fetch(\PDO::FETCH_ASSOC);
                 // update last login
-                $db->qUpdLastVisit->execute(array('user_id' => $user['id']));
+                $this->qUpdLastVisit->execute(array('user_id' => $user['id']));
                 
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['last_visit'] = date('d/m/Y H:i', strtotime($user['last_visit']));
@@ -97,13 +140,13 @@ class Authorization
     
     
     // logout
-    public static function logout()
+    public function logout()
     {
         $_SESSION['user_id'] = 0;
     }
     
     // get logined status at start
-    public static function getAuthInfo()
+    public function getAuthInfo()
     {
         $authData = array();
         $authData['userId'] = $_SESSION['user_id'] ? $_SESSION['user_id'] : 0;

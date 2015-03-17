@@ -16,3 +16,4 @@ define("AUTH_ATTEMPTS", 2);
  * Directory separator for class loader
  */
 define("DIRECTORY_SEPARATOR", '/');
+define("MY_DIRECTORY_SEPARATOR", '/');

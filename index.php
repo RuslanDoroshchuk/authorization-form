@@ -5,6 +5,6 @@ session_start();
 
 require_once 'Autoloader.php';
 
-$auth = new classes\Authorization();
+$auth = new Authorization();
 
 require_once 'templates/index.php';
