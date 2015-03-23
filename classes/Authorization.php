@@ -65,7 +65,7 @@ class Authorization
     private function getUser($email)
     {
         $db = Database::getInstance();
-        $q = $db->prepare("SELECT id, password, last_visit FROM users "
+        $q = $db->prepare("SELECT id, password, salt, last_visit FROM users "
                     . "WHERE email = ?");
         $q->execute(array($email));
         if ($q->rowCount()){
@@ -99,15 +99,15 @@ class Authorization
                             id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
                             email VARCHAR(50) NOT NULL,
                             password VARCHAR(255) NOT NULL,
+                            salt VARCHAR(255) NOT NULL,
                             last_visit TIMESTAMP
                             )");
             // 2. Add test user
             $pass = '1111';
-            $randString = substr(str_shuffle(str_repeat('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',5)),0,32);
-            $passwordsr = md5($pass.$randString);
-            $password = $passwordsr.":".$randString;
-            $db->query("INSERT INTO users (email, password, last_visit) "
-                        . "VALUES ('mail@mail.ua', '$password', "
+            $salt = substr(str_shuffle(str_repeat('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',5)),0,32);
+            $password = md5($pass.$salt);
+            $db->query("INSERT INTO users (email, password, salt, last_visit) "
+                        . "VALUES ('mail@mail.ua', '$password', '$salt',"
                         . "'0000-00-00 00:00:00')");
         }        
     }
@@ -134,9 +134,7 @@ class Authorization
             $user = $this->getUser($login);
             
             if ($user){
-                $randStr = substr($user['password'], -32);
-                $passClear =md5($pass.$randStr);
-                $password = $passClear.":".$randStr;
+                $password =md5($pass.$user['salt']);
                 $passOK = ($password == $user['password']) ? true : false;
             }
             
@@ -147,13 +145,15 @@ class Authorization
                 $this->qUpdLastVisit->execute(array('user_id' => $user['id']));
                 
                 $_SESSION['user_id'] = $user['id'];
-                $_SESSION['last_visit'] = date('d/m/Y H:i', strtotime($user['last_visit']));
-                $_SESSION['wrong_pass'] = 0;
-                if ($user['last_visit']=='0000-00-00 00:00:00'){
-                    $lastVisitMsg = "This is your first visit";    
+                if ($user['last_visit'] == "0000-00-00 00:00:00"){
+                    $_SESSION['last_visit'] = "This is your first visit";
+                    $lastVisitMsg = "This is your first visit";
                 } else {
-                    $lastVisitMsg = "last visit: ".date('d/m/Y H:i', strtotime($user['last_visit']));
+                    $_SESSION['last_visit'] = date('d/m/Y H:i', strtotime($user['last_visit']));
+                    $lastVisitMsg = "last visit: ".$_SESSION['last_visit'];
                 }
+                $_SESSION['wrong_pass'] = 0;
+                
                 $rez['answer'] = 'OK';
                 $rez['msg'] = "Hello! Your id: ".$user['id'].", ".$lastVisitMsg;
 
