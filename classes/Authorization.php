@@ -1,11 +1,30 @@
 <?php
 namespace testAuthForm;
 
+/**
+ * Class for user authorization
+ */
 class Authorization
 {
-    private $qUserCheck;      // prepered query for checking user login/password
-    private $qUpdLastVisit;   // prepered query for updating user last visit
+    /**
+     * prepered query for select information about user by login/password
+     * @access private
+     * @var PDOStatement
+     */
+    private $qUserCheck;     
     
+    /**
+     * prepered query for updating user last visit
+     * @access private
+     * @var PDOStatement
+     */
+    private $qUpdLastVisit;
+    
+    /**
+     * constructor
+     * create table users and add user if table not exist
+     * prepare queries for future using
+     */
     public function __construct()
     {
         $this->createUserTable();
@@ -13,7 +32,11 @@ class Authorization
         $this->qUpdLastVisit = $this->queryUpdLastVisit();
     }
     
-    // prepare select for checkind user login/password
+    /**
+     * prepare select information about user by login/password
+     * @uses Database::getInstance() for access to DB
+     * @return PDOStatement 
+     */
     private function queryUserCheck()
     {
         $db = Database::getInstance();
@@ -21,7 +44,11 @@ class Authorization
                     . "WHERE email = :email AND password = :password");
     }
     
-    // prepare query for updating user last visit
+    /**
+     * prepare query for updating user last visit
+     * @uses Database::getInstance() for access to DB
+     * @return PDOStatement 
+     */
     private function queryUpdLastVisit()
     {
         $db = Database::getInstance();
@@ -29,7 +56,12 @@ class Authorization
                     .' WHERE id = :user_id');
     }
     
-    // get user password by email
+    /**
+     * get user password by email
+     * @param string $email user email 
+     * @uses Database::getInstance() for access to DB
+     * @return array
+     */
     private function getUser($email)
     {
         $db = Database::getInstance();
@@ -43,7 +75,11 @@ class Authorization
         }
     }
     
-    // create user table if not exist
+    /**
+     * create table 'users' and add test user if table 'users' not exist
+     * @uses Database::getInstance() for access to DB
+     * @return void
+     */
     private function createUserTable()
     {
         $db = Database::getInstance();
@@ -76,7 +112,14 @@ class Authorization
         }        
     }
     
-    // check login and password
+    /**
+     * check login and password
+     * 
+     * @param string $login user email
+     * @param string $pass user password
+     * @param string $code code from captha
+     * @return json
+     */
     public function checkUser($login, $pass, $code)
     {
         $rez = array();  // rezult
@@ -138,14 +181,19 @@ class Authorization
         echo json_encode($rez);
     }
     
-    
-    // logout
+    /**
+     * logout event
+     * @return void
+     */
     public function logout()
     {
         $_SESSION['user_id'] = 0;
     }
     
-    // get logined status at start
+    /**
+     * get logined status at start
+     * @return json
+     */
     public function getAuthInfo()
     {
         $authData = array();

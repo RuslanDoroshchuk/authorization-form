@@ -1,14 +1,21 @@
 <?php
 namespace testAuthForm;
 
+/**
+ * include configuration file
+ */
 require_once 'config.php';
 
 /**
- * Custom class autoloader
+ * Custom autoloder class
  */
-
 class MyAutoload
 {
+    /**
+     * Autoload files from folders like namespace
+     * @param string $classname - classname
+     * @return void
+     */
     public static function autoload($classname){
         $classname = ltrim($classname, '\\');
         $classname = ltrim($classname, __NAMESPACE__);
@@ -20,6 +27,11 @@ class MyAutoload
         }
     }
     
+    /**
+     * Autoload files from folder classes
+     * @param string $classname - classname
+     * @return void
+     */
     public static function autoload_from_classes($classname){
         $path = explode('\\', $classname);
         $classShort = array_pop($path);
@@ -30,5 +42,8 @@ class MyAutoload
     }
 }
 
+/**
+ * register autoload methods
+ */
 spl_autoload_register(array('testAuthForm\MyAutoload', 'autoload'));
 spl_autoload_register(array('testAuthForm\MyAutoload', 'autoload_from_classes'));
